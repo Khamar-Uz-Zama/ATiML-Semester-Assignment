@@ -29,16 +29,15 @@ def readIndexes():
     indexPath = os.path.join(os.getcwd(), Path1, Path2, indexFile)
     data = pd.read_csv(indexPath, encoding='latin-1', sep=';')
     
-    testData = data[:10]
-    return testData
+    return data
 
 def readHTMLFile(htmlFilePath):
     with open(htmlFilePath, "r") as f:
-        corpus = BeautifulSoup(f, features="lxml").text
+        corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
     
     return corpus
 
-def pre_process_document(corpus):
+def preProcessDocument(corpus):
     
     processedSentences = []
     corpus = sent_tokenize(corpus)
@@ -68,19 +67,19 @@ def pre_process_document(corpus):
     
     return processedSentences
 
-def processAllHTMLFiles(data):
+def processAllHTMLFiles(data, numberOfFilesToRead):
 
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
+    processedFiles = []
 
     dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
-    htmlFilePath = os.path.join(dataPath,data['book_id'][0])[:-5] + '-content.html'
-    
-    corpus = readHTMLFile(htmlFilePath)
-    processed_corpus = pre_process_document(corpus)
-    
-    return processed_corpus
-    
-data = readIndexes()
-pc = processAllHTMLFiles(data)
+    for i in range(numberOfFilesToRead):
+        print(i)
+        htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
+        corpus = readHTMLFile(htmlFilePath)
+        processed_corpus = preProcessDocument(corpus)
+        processedFiles.append(processed_corpus)
+        
+    return processedFiles
