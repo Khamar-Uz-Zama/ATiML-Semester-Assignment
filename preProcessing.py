@@ -8,75 +8,79 @@ Created on Wed May 27 02:53:58 2020
 import pandas as pd
 import numpy as np
 import os
-from bs4 import BeautifulSoup
-
-Path = 'Gutenberg_English_Fiction_1k\\Gutenberg_English_Fiction_1k'
-indexPath = 'master996.csv'
-filesPath = 'Gutenberg_19th_century_English_Fiction'
-
-indexes = os.path.join(os.getcwd(),Path, indexPath)
-dataPath = os.path.join(os.getcwd(),Path, filesPath)
-data = pd.read_csv(indexes, encoding='latin-1', sep=';')
-
-testData = data[:10]
-
-htmlFile = os.path.join(dataPath,testData['book_id'][0])[:-5] + '-content.html'
-with open(htmlFile, "r") as f:
-    corpus = BeautifulSoup(f).text
-
-
-
-
+import re
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.stem.lancaster import LancasterStemmer
-from nltk.tokenize import sent_tokenize, word_tokenize 
+from nltk.tokenize import sent_tokenize 
+from bs4 import BeautifulSoup
 
-lmtzr = WordNetLemmatizer()
-st = LancasterStemmer()
 
-# Stores the stopwords in english in a set called stop
+lemmatizer = WordNetLemmatizer()
+stemmer = LancasterStemmer()
+
 stopwordsEN = set(stopwords.words('english'))
 
-def process_words(corp):
+def readIndexes():    
+    Path1 = 'Gutenberg_English_Fiction_1k'
+    Path2 = 'Gutenberg_English_Fiction_1k'
+    indexFile = 'master996.csv'
     
-    # Initialising the list to store the stop words
-    wordList= []
-    wordLemmaList= []
-    wordStemList = []
+    indexPath = os.path.join(os.getcwd(), Path1, Path2, indexFile)
+    data = pd.read_csv(indexPath, encoding='latin-1', sep=';')
     
+    testData = data[:10]
+    return testData
+
+def readHTMLFile(htmlFilePath):
+    with open(htmlFilePath, "r") as f:
+        corpus = BeautifulSoup(f, features="lxml").text
     
-    # Converts all the uppercase in the Tweets to lowercase
-    words=corp.lower()
+    return corpus
+
+def pre_process_document(corpus):
     
-    #Removing the special symbols such as ',','.', etc.
-    words = re.sub(r'[^a-zA-Z0-9 ]',r'',words)
-    
-    #Converting stream of words to a list of words to check for stop words
-    wordList= words.split()
-    
-    #Performing Lemmatisation
-    for words in wordList:
-        wordLemmaList.append(lmtzr.lemmatize(words))
+    processedSentences = []
+    corpus = sent_tokenize(corpus)
+
+    for sentence in corpus:
+        wordList= []
+        wordLemmaList= []
+        wordStemList = []
         
-    #Performing Word Stemming
-    for words in wordList:        
-        wordStemList.append(st.stem(words))
+        words=sentence.lower()
+        
+        words = re.sub(r'[^a-zA-Z0-9 ]',r'',words)
+        
+        wordList= words.split()
+        
+        for words in wordList:
+            wordLemmaList.append(lemmatizer.lemmatize(words))
+            
+#        for words in wordList:        
+#            wordStemList.append(stemmer.stem(words))
+        
+        for words in wordStemList:
+            if words in stopwordsEN:
+                wordLemmaList.remove(words)
+                
+        processedSentences.append(" ".join(wordLemmaList))
     
-    #Removing the stopwords from the List of words and joins the words into string
-    for words in wordStemList:
-        if words in stop:
-            wordStemList.remove(words)
-    return(" ".join(wordStemList))
+    return processedSentences
 
-clean_text=[]
-corp = sent_tokenize(corpus)
-process_words(corp)
+def processAllHTMLFiles(data):
 
-zz = [x.lower() for x in corp]
+    Path1 = 'Gutenberg_English_Fiction_1k'
+    Path2 = 'Gutenberg_English_Fiction_1k'
+    HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
 
-
-#Iterating through each row and proessing the text.
-##We're saving this output in clean_text List
-#for i in range(0, num_rows):
-#    clean_text.append(process_words(str(textList[i])))    
+    dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
+    htmlFilePath = os.path.join(dataPath,data['book_id'][0])[:-5] + '-content.html'
+    
+    corpus = readHTMLFile(htmlFilePath)
+    processed_corpus = pre_process_document(corpus)
+    
+    return processed_corpus
+    
+data = readIndexes()
+pc = processAllHTMLFiles(data)
