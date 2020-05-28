@@ -30,12 +30,18 @@ def readIndexes():
     data = pd.read_csv(indexPath, encoding='latin-1', sep=';')
     
     return data
-
 def readHTMLFile(htmlFilePath):
-    with open(htmlFilePath, "r") as f:
-        corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
-    
+    try:
+        with open(htmlFilePath, "r") as f:
+            corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
+    except:
+        pol+=1
+        print("cant read",pol)
+        return False
     return corpus
+
+global pol
+pol = 0
 
 def preProcessDocument(corpus):
     
@@ -75,11 +81,14 @@ def processAllHTMLFiles(data, numberOfFilesToRead):
     processedFiles = []
 
     dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
+    if(numberOfFilesToRead == -1):
+        numberOfFilesToRead = data.shape[0]
     for i in range(numberOfFilesToRead):
         print(i)
         htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
         corpus = readHTMLFile(htmlFilePath)
-        processed_corpus = preProcessDocument(corpus)
-        processedFiles.append(processed_corpus)
-        
+        if corpus:
+            processed_corpus = preProcessDocument(corpus)
+            processedFiles.append(processed_corpus)
+            
     return processedFiles
