@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 
 filename = "processedHTML.pickle"
-noOfFilesToLoad = 100
+noOfFilesToLoad = 10
 pickleData = False
 
 data = pp.readIndexes()
@@ -20,6 +20,7 @@ data = pp.readIndexes()
 try:   
     with open(filename, 'rb') as f:
         processedData = pickle.load(f)
+        labels = data['guten_genre']
         if(noOfFilesToLoad != -1):
             processedData = processedData[:noOfFilesToLoad]
             labels = data['guten_genre'][:noOfFilesToLoad]
@@ -31,11 +32,11 @@ except:
         with open(filename, 'wb') as f:
             pickle.dump(processedData,f)
 
-z = data['guten_genre'].value_counts()
-ax = sns.barplot(x=z.index, y=z.values, 
-                 palette="Blues_d")
 
-
+def plotGenres():
+    targetCounts = data['guten_genre'].value_counts()
+    ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
 def train_svm(X, y):
     """
@@ -52,14 +53,20 @@ def create_tfidf_training_data(docs):
     class labels), then applies the TF-IDF transform to this
     list. 
     """
-    vectorizer = TfidfVectorizer(min_df=1)
-    X = vectorizer.fit_transform(docs)
+    concDocs = []
+    separator = ','
     
-    return X
+    for doc in processedData:
+        concDocs.append(separator.join(doc))
+        
+    vectorizer = TfidfVectorizer(min_df=1)
+    X = vectorizer.fit_transform(concDocs)
+    
+    return X, vectorizer
 
 if __name__ == "__main__":
     # Vectorise and TF-IDF transform the corpus 
-    vectorizedData = create_tfidf_training_data(processedData)
+    vectorizedData, vectorizer = create_tfidf_training_data(processedData)
 
     # Create the training-test split of the data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -69,3 +76,8 @@ if __name__ == "__main__":
     # Create and train the Support Vector Machine
     svm = train_svm(X_train, y_train)
     
+
+
+
+
+
