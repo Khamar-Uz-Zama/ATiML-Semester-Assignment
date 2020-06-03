@@ -82,9 +82,10 @@ def processAllHTMLFiles(numberOfFilesToRead):
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
     processedFiles = []
     badIndexes = []
-    
     dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
     data = readIndexes()
+    if(numberOfFilesToRead < 0):
+        numberOfFilesToRead = data.shape[0]
     labels = data['guten_genre'][:numberOfFilesToRead]
     
     for i in range(numberOfFilesToRead):
@@ -97,7 +98,9 @@ def processAllHTMLFiles(numberOfFilesToRead):
         else:
             badIndexes.append(i)
             
-    labels.drop(badIndexes)
+    labels = labels.drop(badIndexes)
     processedFiles.append(labels)
     
+    print(badIndexes)
+    print("Number of files dropped: ", len(badIndexes))
     return processedFiles

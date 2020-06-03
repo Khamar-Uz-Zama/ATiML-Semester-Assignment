@@ -14,9 +14,10 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
 
-filename = "processedHTML2.pickle"
-noOfFilesToLoad = 60
-pickleData = False
+filename = "processedHTML.pickle"
+# noOfFilesToLoad = -1 for all files
+noOfFilesToLoad = -1
+pickleData = True
 
 data = pp.readIndexes()
 
@@ -43,7 +44,6 @@ except:
     processedData.pop()
 
 def plotGenres():
-#    targetCounts = data['guten_genre'].value_counts()
     targetCounts = labels.value_counts()
     ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
@@ -75,7 +75,8 @@ def create_tfidf_training_data(docs):
     
     return X, vectorizer
 
-if __name__ == "__main__":
+def svmClassifier():
+
     # Vectorise and TF-IDF transform the corpus 
     vectorizedData, vectorizer = create_tfidf_training_data(processedData)
 
@@ -92,16 +93,9 @@ if __name__ == "__main__":
     cf = metrics.confusion_matrix(y_test, preds)
 
     plt.figure(figsize = (10,7))
-    sns.heatmap(cf, annot=True)
+    sns.heatmap(cf, annot=True)    
 
-
-#    disp = metrics.plot_confusion_matrix(svm, X_test, y_test,
-#                                 display_labels=labels,
-#                                 cmap=plt.cm.Blues,
-#                                 normalize=True)
-#    disp.ax_.set_title("xxx")
-#
-#    print("xxx")
-#    print(disp.confusion_matrix)
-#
-#    plt.show()
+if __name__ == "__main__":
+    
+    svmClassifier()
+    
