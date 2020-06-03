@@ -7,17 +7,20 @@ Created on Wed May 27 14:01:33 2020
 import preProcessing as pp
 import pickle
 import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
+
 
 filename = "processedHTML.pickle"
-noOfFilesToLoad = 10
+noOfFilesToLoad = -1
 pickleData = False
 
 data = pp.readIndexes()
 
-try:   
+try:
     with open(filename, 'rb') as f:
         processedData = pickle.load(f)
         labels = data['guten_genre']
@@ -42,7 +45,7 @@ def train_svm(X, y):
     """
     Create and train the Support Vector Machine.
     """
-    svm = SVC(C=1000000.0, gamma=0.0, kernel='rbf')
+    svm = SVC(C=1000000.0, gamma='auto', kernel='rbf')
     svm.fit(X, y)
     return svm
 
@@ -56,7 +59,8 @@ def create_tfidf_training_data(docs):
     concDocs = []
     separator = ','
     
-    for doc in processedData:
+    for i,doc in enumerate(processedData):
+        print(i)
         concDocs.append(separator.join(doc))
         
     vectorizer = TfidfVectorizer(min_df=1)
@@ -76,8 +80,21 @@ if __name__ == "__main__":
     # Create and train the Support Vector Machine
     svm = train_svm(X_train, y_train)
     
+    preds = svm.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test, preds)
+    cf = metrics.confusion_matrix(y_test, preds)
+
+    plt.figure(figsize = (10,7))
+    sns.heatmap(cf, annot=True)
 
 
-
-
-
+#    disp = metrics.plot_confusion_matrix(svm, X_test, y_test,
+#                                 display_labels=labels,
+#                                 cmap=plt.cm.Blues,
+#                                 normalize=True)
+#    disp.ax_.set_title("xxx")
+#
+#    print("xxx")
+#    print(disp.confusion_matrix)
+#
+#    plt.show()
