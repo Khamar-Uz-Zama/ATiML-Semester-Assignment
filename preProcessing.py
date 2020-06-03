@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 
 lemmatizer = WordNetLemmatizer()
 stemmer = LancasterStemmer()
-
+pol = 0
 stopwordsEN = set(stopwords.words('english'))
 
 def readIndexes():    
@@ -30,7 +30,10 @@ def readIndexes():
     data = pd.read_csv(indexPath, encoding='latin-1', sep=';')
     
     return data
+
 def readHTMLFile(htmlFilePath):
+    global pol
+    
     try:
         with open(htmlFilePath, "r") as f:
             corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
@@ -40,8 +43,7 @@ def readHTMLFile(htmlFilePath):
         return False
     return corpus
 
-global pol
-pol = 0
+
 
 def preProcessDocument(corpus):
     
@@ -73,16 +75,18 @@ def preProcessDocument(corpus):
     
     return processedSentences
 
-def processAllHTMLFiles(data, numberOfFilesToRead):
+def processAllHTMLFiles(numberOfFilesToRead):
 
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
     processedFiles = []
-
+    badIndexes = []
+    
     dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
-    if(numberOfFilesToRead == -1):
-        numberOfFilesToRead = data.shape[0]
+    data = readIndexes()
+    labels = data['guten_genre'][:numberOfFilesToRead]
+    
     for i in range(numberOfFilesToRead):
         print(i)
         htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
@@ -90,5 +94,10 @@ def processAllHTMLFiles(data, numberOfFilesToRead):
         if corpus:
             processed_corpus = preProcessDocument(corpus)
             processedFiles.append(processed_corpus)
+        else:
+            badIndexes.append(i)
             
+    labels.drop(badIndexes)
+    processedFiles.append(labels)
+    
     return processedFiles

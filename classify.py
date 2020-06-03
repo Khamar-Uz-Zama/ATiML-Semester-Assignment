@@ -14,30 +14,37 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
 
-filename = "processedHTML.pickle"
-noOfFilesToLoad = -1
+filename = "processedHTML2.pickle"
+noOfFilesToLoad = 60
 pickleData = False
 
 data = pp.readIndexes()
 
+
 try:
     with open(filename, 'rb') as f:
         processedData = pickle.load(f)
-        labels = data['guten_genre']
         if(noOfFilesToLoad != -1):
             processedData = processedData[:noOfFilesToLoad]
-            labels = data['guten_genre'][:noOfFilesToLoad]
-        
+        labels = processedData[-1]
+
 except:
-    print('No pickle found, preprocessing {} HTML files', noOfFilesToLoad)
-    processedData = pp.processAllHTMLFiles(data,noOfFilesToLoad)
+    print('No pickle found, preprocessing HTML files')
+    processedData = pp.processAllHTMLFiles(noOfFilesToLoad)
+    labels = processedData[-1]
+
+    if(noOfFilesToLoad == -1):
+        noOfFilesToLoad = labels.shape[0]
+    
     if(pickleData):
         with open(filename, 'wb') as f:
             pickle.dump(processedData,f)
-
+            
+    processedData.pop()
 
 def plotGenres():
-    targetCounts = data['guten_genre'].value_counts()
+#    targetCounts = data['guten_genre'].value_counts()
+    targetCounts = labels.value_counts()
     ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
