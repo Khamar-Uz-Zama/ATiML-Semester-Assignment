@@ -12,11 +12,11 @@ from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 filename = "processedHTML.pickle"
 # noOfFilesToLoad = -1 for all files
-noOfFilesToLoad = -1
+noOfFilesToLoad = 10
 pickleData = True
 
 data = pp.readIndexes()
@@ -25,10 +25,11 @@ data = pp.readIndexes()
 try:
     with open(filename, 'rb') as f:
         processedData = pickle.load(f)
-        if(noOfFilesToLoad != -1):
-            processedData = processedData[:noOfFilesToLoad]
         labels = processedData[-1]
 
+        if(noOfFilesToLoad != -1):
+            processedData = processedData[:noOfFilesToLoad]
+            labels = labels[:noOfFilesToLoad]
 except:
     print('No pickle found, preprocessing HTML files')
     processedData = pp.processAllHTMLFiles(noOfFilesToLoad)
@@ -56,7 +57,6 @@ def train_svm(X, y):
     svm.fit(X, y)
     return svm
 
-
 def create_tfidf_training_data(docs):
     """
     Creates a document corpus list (by stripping out the
@@ -77,15 +77,12 @@ def create_tfidf_training_data(docs):
 
 def svmClassifier():
 
-    # Vectorise and TF-IDF transform the corpus 
     vectorizedData, vectorizer = create_tfidf_training_data(processedData)
 
-    # Create the training-test split of the data
     X_train, X_test, y_train, y_test = train_test_split(
         vectorizedData, labels, test_size=0.2, random_state=42
     )
 
-    # Create and train the Support Vector Machine
     svm = train_svm(X_train, y_train)
     
     preds = svm.predict(X_test)
@@ -98,5 +95,19 @@ def svmClassifier():
 
 if __name__ == "__main__":
     
-    svmClassifier()
+#    svmClassifier()
     
+    
+    sid = SentimentIntensityAnalyzer()
+    
+    sentiments = []
+    
+    for i,doc in enumerate(processedData):
+        print(i)
+        x = ",".join(doc)
+        ss = sid.polarity_scores(x)
+#        for k in sorted(ss):
+#         print('{0}: {1}, '.format(k, ss[k]), end='')
+#         print()
+         
+        sentiments.append(ss)
