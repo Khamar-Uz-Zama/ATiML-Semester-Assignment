@@ -93,7 +93,8 @@ def svmClassifier():
     cf = metrics.confusion_matrix(y_test, preds)
 
     plt.figure(figsize = (10,7))
-    sns.heatmap(cf, annot=True)    
+    sns.heatmap(cf, annot=True)   
+    print("Accuracy achieved using svm = {}".format(accuracy))
 
 if __name__ == "__main__":
     

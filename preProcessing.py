@@ -20,6 +20,13 @@ lemmatizer = WordNetLemmatizer()
 stemmer = LancasterStemmer()
 pol = 0
 stopwordsEN = set(stopwords.words('english'))
+preProcessingConfig = {
+        "lower":True,
+        "symbols":False,
+        "lower":True,
+        "lemmatize":True,
+        "stem":False,
+        }
 
 def readIndexes():    
     Path1 = 'Gutenberg_English_Fiction_1k'
@@ -54,18 +61,21 @@ def preProcessDocument(corpus):
         wordList= []
         wordLemmaList= []
         wordStemList = []
-        
-        words=sentence.lower()
-        
-        words = re.sub(r'[^a-zA-Z0-9 ]',r'',words)
+        if(preProcessingConfig["lower"]):
+            words=sentence.lower()
+            
+        if(preProcessingConfig["symbols"]):
+            words = re.sub(r'[^a-zA-Z0-9 ]',r'',words)
         
         wordList= words.split()
         
-        for words in wordList:
-            wordLemmaList.append(lemmatizer.lemmatize(words))
-            
-#        for words in wordList:        
-#            wordStemList.append(stemmer.stem(words))
+        if(preProcessingConfig["lemmatize"]):
+            for words in wordList:
+                wordLemmaList.append(lemmatizer.lemmatize(words))
+                
+        if(preProcessingConfig["stem"]):
+            for words in wordList:        
+                wordStemList.append(stemmer.stem(words))
         
         for words in wordStemList:
             if words in stopwordsEN:
