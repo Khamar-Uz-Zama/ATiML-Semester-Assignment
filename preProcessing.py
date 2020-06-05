@@ -20,13 +20,7 @@ lemmatizer = WordNetLemmatizer()
 stemmer = LancasterStemmer()
 pol = 0
 stopwordsEN = set(stopwords.words('english'))
-preProcessingConfig = {
-        "lower":True,
-        "symbols":False,
-        "lower":True,
-        "lemmatize":True,
-        "stem":False,
-        }
+
 
 def readIndexes():    
     Path1 = 'Gutenberg_English_Fiction_1k'
@@ -45,22 +39,22 @@ def readHTMLFile(htmlFilePath):
         with open(htmlFilePath, "r") as f:
             corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
     except:
+        print("cant read file",pol)
         pol+=1
-        print("cant read",pol)
         return False
+    
     return corpus
 
 
 
-def preProcessDocument(corpus):
+def preProcessDocument(corpus, preProcessingConfig):
     
     processedSentences = []
     corpus = sent_tokenize(corpus)
 
     for sentence in corpus:
         wordList= []
-        wordLemmaList= []
-        wordStemList = []
+
         if(preProcessingConfig["lower"]):
             words=sentence.lower()
             
@@ -68,24 +62,27 @@ def preProcessDocument(corpus):
             words = re.sub(r'[^a-zA-Z0-9 ]',r'',words)
         
         wordList= words.split()
-        
+        temp = wordList
         if(preProcessingConfig["lemmatize"]):
-            for words in wordList:
-                wordLemmaList.append(lemmatizer.lemmatize(words))
-                
+            for index, word in enumerate(temp):
+                wordList[index] = lemmatizer.lemmatize(word)
+
+        temp = wordList                
         if(preProcessingConfig["stem"]):
-            for words in wordList:        
-                wordStemList.append(stemmer.stem(words))
+            for index, word in enumerate(temp):
+                wordList[index] = stemmer.stem(words)
         
-        for words in wordStemList:
-            if words in stopwordsEN:
-                wordLemmaList.remove(words)
+        if(preProcessingConfig["stopWords"]):
+            for word in wordList:
+                if word in stopwordsEN:
+                    wordList.remove(word)
                 
-        processedSentences.append(" ".join(wordLemmaList))
+        processedSentences.append(" ".join(wordList))
+        
     
     return processedSentences
 
-def processAllHTMLFiles(numberOfFilesToRead):
+def processHTMLFiles(numberOfFilesToRead, preProcessingConfig):
 
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
@@ -103,7 +100,7 @@ def processAllHTMLFiles(numberOfFilesToRead):
         htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
         corpus = readHTMLFile(htmlFilePath)
         if corpus:
-            processed_corpus = preProcessDocument(corpus)
+            processed_corpus = preProcessDocument(corpus, preProcessingConfig)
             processedFiles.append(processed_corpus)
         else:
             badIndexes.append(i)
@@ -111,6 +108,9 @@ def processAllHTMLFiles(numberOfFilesToRead):
     labels = labels.drop(badIndexes)
     processedFiles.append(labels)
     
-    print(badIndexes)
-    print("Number of files dropped: ", len(badIndexes))
+    if(len(badIndexes) > 0):
+        print("Following files could not be read:")
+        print(badIndexes)
+        print("Total number of files dropped: ", len(badIndexes))
+        
     return processedFiles

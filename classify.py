@@ -4,6 +4,7 @@ Created on Wed May 27 14:01:33 2020
 
 @author: Khamar Uz Zama
 """
+
 import preProcessing as pp
 import pickle
 import seaborn as sns
@@ -14,31 +15,40 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-filename = "processedHTML.pickle"
+filename = "processedHTMLnoLemma.pickle"
 # noOfFilesToLoad = -1 for all files
-noOfFilesToLoad = 10
-pickleData = True
-
+noOfFilesToLoad = -1
+saveData = True
+loadData = True
 data = pp.readIndexes()
-
+preProcessingConfig = {
+        "lower":True,
+        "symbols":True,
+        "lemmatize":False,
+        "stem":False,
+        "stopWords":True
+        }
 
 try:
-    with open(filename, 'rb') as f:
-        processedData = pickle.load(f)
-        labels = processedData[-1]
-
-        if(noOfFilesToLoad != -1):
-            processedData = processedData[:noOfFilesToLoad]
-            labels = labels[:noOfFilesToLoad]
+    if(loadData):
+        with open(filename, 'rb') as f:
+            processedData = pickle.load(f)
+            labels = processedData[-1]
+    
+            if(noOfFilesToLoad != -1):
+                processedData = processedData[:noOfFilesToLoad]
+                labels = labels[:noOfFilesToLoad]
+    else:
+        raise Exception
 except:
-    print('No pickle found, preprocessing HTML files')
-    processedData = pp.processAllHTMLFiles(noOfFilesToLoad)
+    print('preprocessing HTML files')
+    processedData = pp.processHTMLFiles(noOfFilesToLoad, preProcessingConfig)
     labels = processedData[-1]
 
     if(noOfFilesToLoad == -1):
         noOfFilesToLoad = labels.shape[0]
     
-    if(pickleData):
+    if(saveData):
         with open(filename, 'wb') as f:
             pickle.dump(processedData,f)
             
@@ -96,7 +106,7 @@ def svmClassifier():
 if __name__ == "__main__":
     
 #    svmClassifier()
-    
+#   plotGenres()   
     
     sid = SentimentIntensityAnalyzer()
     
@@ -111,3 +121,11 @@ if __name__ == "__main__":
 #         print()
          
         sentiments.append(ss)
+        
+
+    with open("sentiments.pickle", 'wb') as f:
+        pickle.dump(sentiments,f)
+        
+    with open("sentiments.pickle", 'rb') as f:
+        sents = pickle.load(f)
+    print("")
