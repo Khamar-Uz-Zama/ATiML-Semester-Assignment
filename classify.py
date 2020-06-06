@@ -9,6 +9,7 @@ import preProcessing as pp
 import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
+import datefinder
 from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -108,24 +109,43 @@ if __name__ == "__main__":
 #    svmClassifier()
 #   plotGenres()   
     
-    sid = SentimentIntensityAnalyzer()
+#    sid = SentimentIntensityAnalyzer()
+#    
+#    sentiments = []
+#    
+#    for i,doc in enumerate(processedData):
+#        print(i)
+#        x = ",".join(doc)
+#        ss = sid.polarity_scores(x)
+##        for k in sorted(ss):
+##         print('{0}: {1}, '.format(k, ss[k]), end='')
+##         print()
+#         
+#        sentiments.append(ss)
+#        
+#
+#    with open("sentiments.pickle", 'wb') as f:
+#        pickle.dump(sentiments,f)
+#        
+#    with open("sentiments.pickle", 'rb') as f:
+#        sents = pickle.load(f)
+#    print("")
     
-    sentiments = []
-    
+
+    zz = []
     for i,doc in enumerate(processedData):
-        print(i)
+        dates = []
         x = ",".join(doc)
-        ss = sid.polarity_scores(x)
-#        for k in sorted(ss):
-#         print('{0}: {1}, '.format(k, ss[k]), end='')
-#         print()
-         
-        sentiments.append(ss)
+    
+        matches = datefinder.find_dates(x)
+        print(i)
+        for match in matches:
+            dates.append(match)
+            
+        mylist = list(dict.fromkeys(dates))
+   
+        zz.append(mylist)
         
 
-    with open("sentiments.pickle", 'wb') as f:
-        pickle.dump(sentiments,f)
-        
-    with open("sentiments.pickle", 'rb') as f:
-        sents = pickle.load(f)
-    print("")
+    with open("dates.pickle", 'wb') as f:
+        pickle.dump(zz,f)
