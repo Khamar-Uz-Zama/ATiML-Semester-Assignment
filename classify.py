@@ -16,11 +16,14 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-filename = "processedHTMLnoLemma.pickle"
+ppFile = "processedHTMLnoLemma.pickle"
+sentsFile = "sentiments.pickle"
+datesFile = "dates.pickle"
+
 # noOfFilesToLoad = -1 for all files
 noOfFilesToLoad = -1
-saveData = True
-loadData = True
+savepreProcessingData = True
+loadpreProcessingData = True
 data = pp.readIndexes()
 preProcessingConfig = {
         "lower":True,
@@ -31,8 +34,8 @@ preProcessingConfig = {
         }
 
 try:
-    if(loadData):
-        with open(filename, 'rb') as f:
+    if(loadpreProcessingData):
+        with open(ppFile, 'rb') as f:
             processedData = pickle.load(f)
             labels = processedData[-1]
     
@@ -49,8 +52,8 @@ except:
     if(noOfFilesToLoad == -1):
         noOfFilesToLoad = labels.shape[0]
     
-    if(saveData):
-        with open(filename, 'wb') as f:
+    if(savepreProcessingData):
+        with open(ppFile, 'wb') as f:
             pickle.dump(processedData,f)
             
     processedData.pop()
@@ -104,34 +107,27 @@ def svmClassifier():
     sns.heatmap(cf, annot=True)   
     print("Accuracy achieved using svm = {}".format(accuracy))
 
-if __name__ == "__main__":
+def sentimentAnalysis():
+    sid = SentimentIntensityAnalyzer()
     
-#    svmClassifier()
-#   plotGenres()   
+    sentiments = []
     
-#    sid = SentimentIntensityAnalyzer()
-#    
-#    sentiments = []
-#    
-#    for i,doc in enumerate(processedData):
-#        print(i)
-#        x = ",".join(doc)
-#        ss = sid.polarity_scores(x)
-##        for k in sorted(ss):
-##         print('{0}: {1}, '.format(k, ss[k]), end='')
-##         print()
-#         
-#        sentiments.append(ss)
-#        
-#
-#    with open("sentiments.pickle", 'wb') as f:
-#        pickle.dump(sentiments,f)
-#        
-#    with open("sentiments.pickle", 'rb') as f:
-#        sents = pickle.load(f)
-#    print("")
-    
+    for i,doc in enumerate(processedData):
+        print(i)
+        x = ",".join(doc)
+        ss = sid.polarity_scores(x)
+#        for k in sorted(ss):
+#         print('{0}: {1}, '.format(k, ss[k]), end='')
+#         print()
+         
+        sentiments.append(ss)
+        
 
+    with open(sentsFile, 'wb') as f:
+        pickle.dump(sentiments,f)
+        
+def extractDates():
+    
     zz = []
     for i,doc in enumerate(processedData):
         dates = []
@@ -147,5 +143,21 @@ if __name__ == "__main__":
         zz.append(mylist)
         
 
-    with open("dates.pickle", 'wb') as f:
+    with open(datesFile, 'wb') as f:
         pickle.dump(zz,f)
+
+if __name__ == "__main__":
+    
+#    svmClassifier()
+#    plotGenres()   
+#    sentimentAnalysis()
+#    extractDates()    
+
+        
+    with open(sentsFile, 'rb') as f:
+        sents = pickle.load(f)
+        
+    print("")
+
+    with open(datesFile, 'rb') as f:
+        datess = pickle.load(f)        
