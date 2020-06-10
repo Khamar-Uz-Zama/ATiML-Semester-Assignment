@@ -22,6 +22,8 @@ nltk.download('averaged_perceptron_tagger')
 ppFile = "processedHTMLnoLemma.pickle"
 sentsFile = "sentiments.pickle"
 datesFile = "dates.pickle"
+posFile = 'posNouns.pickle'
+
 
 # noOfFilesToLoad = -1 for all files
 noOfFilesToLoad = -1
@@ -110,7 +112,7 @@ def svmClassifier():
     sns.heatmap(cf, annot=True)   
     print("Accuracy achieved using svm = {}".format(accuracy))
 
-def sentimentAnalysis():
+def extractsentiments():
     sid = SentimentIntensityAnalyzer()
     
     sentiments = []
@@ -137,14 +139,11 @@ def extractDates():
         x = ",".join(doc)
     
         matches = datefinder.find_dates(x)
-        print(i)
         for match in matches:
             dates.append(match)
             
         mylist = list(dict.fromkeys(dates))
-   
         zz.append(mylist)
-        
 
     with open(datesFile, 'wb') as f:
         pickle.dump(zz,f)
@@ -154,12 +153,13 @@ def loadData():
     with open(sentsFile, 'rb') as f:
         sents = pickle.load(f)
         
-    print("")
-
     with open(datesFile, 'rb') as f:
         dates = pickle.load(f)
     
-    return sents, dates
+    with open(posFile, 'rb') as f:
+        nns = pickle.load(f)
+        
+    return sents, dates, nns
 
 def extractPOS(doc):
     is_noun = lambda pos: pos[:2] == 'NN'
@@ -181,6 +181,10 @@ def extractPOSAllHTMLFiles():
         print(i)
         temp = extractPOS(doc)
         nouns.append(temp)
+    
+    with open(posFile, 'wb') as f:
+        pickle.dump(nouns,f)
+        
     return nouns
 
 if __name__ == "__main__":
@@ -189,14 +193,6 @@ if __name__ == "__main__":
 #    plotGenres()   
 #    extractsentiments()
 #    extractDates()    
+#    extractPOSAllHTMLFiles()
+    loadData()
 
-#   loadData()
-
-    n = extractPOSAllHTMLFiles()
-    posFile = 'posNouns.pickle'
-    with open(posFile, 'wb') as f:
-        pickle.dump(n,f)
-        
-    with open(posFile, 'rb') as f:
-        nns = pickle.load(f)
-    
