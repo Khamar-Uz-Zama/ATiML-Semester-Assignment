@@ -15,6 +15,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
+
+nltk.download('averaged_perceptron_tagger')
 
 ppFile = "processedHTMLnoLemma.pickle"
 sentsFile = "sentiments.pickle"
@@ -22,7 +25,7 @@ datesFile = "dates.pickle"
 
 # noOfFilesToLoad = -1 for all files
 noOfFilesToLoad = -1
-savepreProcessingData = True
+savepreProcessingData = False
 loadpreProcessingData = True
 data = pp.readIndexes()
 preProcessingConfig = {
@@ -146,18 +149,41 @@ def extractDates():
     with open(datesFile, 'wb') as f:
         pickle.dump(zz,f)
 
-if __name__ == "__main__":
+def loadData():
     
-#    svmClassifier()
-#    plotGenres()   
-#    sentimentAnalysis()
-#    extractDates()    
-
-        
     with open(sentsFile, 'rb') as f:
         sents = pickle.load(f)
         
     print("")
 
     with open(datesFile, 'rb') as f:
-        datess = pickle.load(f)        
+        dates = pickle.load(f)        
+    
+    return sents, dates
+
+def extractPOS(text):
+
+    lines = 'lines is some string of words'
+    is_noun = lambda pos: pos[:2] == 'NN'
+    nouns = [word for (word, pos) in nltk.pos_tag(text) if is_noun(pos)]
+    
+    return nouns
+
+def extractPOSAllHTMLFiles():
+    nouns = []
+    for i,doc in enumerate(processedData):
+        temp = extractPOS(doc)
+        nouns.append(temp)
+    return nouns
+
+if __name__ == "__main__":
+    
+#    svmClassifier()
+#    plotGenres()   
+#    extractsentiments()
+#    extractDates()    
+
+#   loadData()
+
+    extractPOS(processedData[0])
+        
