@@ -157,21 +157,28 @@ def loadData():
     print("")
 
     with open(datesFile, 'rb') as f:
-        dates = pickle.load(f)        
+        dates = pickle.load(f)
     
     return sents, dates
 
-def extractPOS(text):
-
-    lines = 'lines is some string of words'
+def extractPOS(doc):
     is_noun = lambda pos: pos[:2] == 'NN'
-    nouns = [word for (word, pos) in nltk.pos_tag(text) if is_noun(pos)]
-    
-    return nouns
+#    for sentence in doc:        
+#        tokenized = nltk.word_tokenize(sentence)
+#        snouns = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos)] 
+#        dnouns.append(snouns)
+    x = 0
+    for sentence in doc:        
+        tokenized = nltk.word_tokenize(sentence)
+        for (word, pos) in nltk.pos_tag(tokenized):
+            if is_noun(pos):
+                x +=1
+    return x
 
 def extractPOSAllHTMLFiles():
     nouns = []
     for i,doc in enumerate(processedData):
+        print(i)
         temp = extractPOS(doc)
         nouns.append(temp)
     return nouns
@@ -185,5 +192,11 @@ if __name__ == "__main__":
 
 #   loadData()
 
-    extractPOS(processedData[0])
+    n = extractPOSAllHTMLFiles()
+    posFile = 'posNouns.pickle'
+    with open(posFile, 'wb') as f:
+        pickle.dump(n,f)
         
+    with open(posFile, 'rb') as f:
+        nns = pickle.load(f)
+    
