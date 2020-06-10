@@ -16,6 +16,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
+import pandas as pd
 
 nltk.download('averaged_perceptron_tagger')
 
@@ -195,4 +196,29 @@ if __name__ == "__main__":
 #    extractDates()    
 #    extractPOSAllHTMLFiles()
     loadData()
+    
+    with open(datesFile, 'rb') as f:
+        dates = pickle.load(f)    
+    
+    x = pd.DataFrame(dates)
+    
+    y = x.loc[:4]
+    z = pd.DataFrame()
+    for (columnName, columnData) in y.iteritems():
+        asdates = columnData.values
+        z.columnName = asdates
+    
+    import functools
+    import operator
+    import datetime
 
+    
+    def avg_datetime(series):
+        res = list(filter(None, series)) 
+        res = list(filter(NaT, res))
+        dt_min = series.min()
+        deltas = [x-dt_min for x in series]
+        return dt_min + functools.reduce(operator.add, deltas) / len(deltas)
+    
+    print(avg_datetime(y.iloc[0][:]))
+    y.iloc[0][:]
