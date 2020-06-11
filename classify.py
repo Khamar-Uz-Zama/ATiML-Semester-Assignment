@@ -10,13 +10,16 @@ import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
 import datefinder
+import nltk
+import pandas as pd
+import numpy as np
+import functools
+import operator
 from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import nltk
-import pandas as pd
 
 nltk.download('averaged_perceptron_tagger')
 
@@ -188,6 +191,42 @@ def extractPOSAllHTMLFiles():
         
     return nouns
 
+
+def avg_datetime(series, ind):
+    res = list(filter(None, series))
+    zzzz = []
+    for i,x in enumerate(np.logical_not(pd.isnull(res))):
+        if(x):
+            zzzz.append(res[i])
+    asd = pd.Series(zzzz)
+    dt_min = asd.min()
+    
+    deltas = [x-dt_min for x in asd]
+    try:
+        return dt_min + functools.reduce(operator.add, deltas) / len(deltas)
+    except:
+        print()
+        return dt_min + functools.reduce(operator.add, deltas) / len(deltas)
+
+
+
+def getAverageDates():
+    with open(datesFile, 'rb') as f:
+        dates = pickle.load(f)    
+    
+    x = pd.DataFrame(dates)
+    
+    y = x.loc[:4]
+#    z = pd.DataFrame()
+#    for (columnName, columnData) in y.iteritems():
+#        asdates = columnData.values
+#        z.columnName = asdates
+    avg = []
+    for ind in x.index:
+         avg.append(avg_datetime(x.iloc[ind,:], ind))
+         
+    return avg
+
 if __name__ == "__main__":
     
 #    svmClassifier()
@@ -195,30 +234,6 @@ if __name__ == "__main__":
 #    extractsentiments()
 #    extractDates()    
 #    extractPOSAllHTMLFiles()
+    asdasda = getAverageDates()
     loadData()
     
-    with open(datesFile, 'rb') as f:
-        dates = pickle.load(f)    
-    
-    x = pd.DataFrame(dates)
-    
-    y = x.loc[:4]
-    z = pd.DataFrame()
-    for (columnName, columnData) in y.iteritems():
-        asdates = columnData.values
-        z.columnName = asdates
-    
-    import functools
-    import operator
-    import datetime
-
-    
-    def avg_datetime(series):
-        res = list(filter(None, series)) 
-        res = list(filter(NaT, res))
-        dt_min = series.min()
-        deltas = [x-dt_min for x in series]
-        return dt_min + functools.reduce(operator.add, deltas) / len(deltas)
-    
-    print(avg_datetime(y.iloc[0][:]))
-    y.iloc[0][:]
