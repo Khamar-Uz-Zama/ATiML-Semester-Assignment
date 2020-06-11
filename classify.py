@@ -21,6 +21,10 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+from datetime import date, datetime, time, timedelta
+
+
+
 nltk.download('averaged_perceptron_tagger')
 
 ppFile = "processedHTMLnoLemma.pickle"
@@ -202,6 +206,9 @@ def avg_datetime(series, ind):
     dt_min = asd.min()
     
     deltas = [x-dt_min for x in asd]
+    pd.to_datetime(deltas)
+    x = functools.reduce(operator.add, deltas)
+    x = sum((c for c in deltas), timedelta())
     try:
         return dt_min + functools.reduce(operator.add, deltas) / len(deltas)
     except:
