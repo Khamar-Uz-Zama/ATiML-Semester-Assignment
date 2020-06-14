@@ -233,7 +233,7 @@ def getAverageDates():
     
     x = pd.DataFrame(dates)
     
-    y = x.loc[:4]
+#    y = x.loc[:4]
 #    z = pd.DataFrame()
 #    for (columnName, columnData) in y.iteritems():
 #        asdates = columnData.values
@@ -295,22 +295,35 @@ def extractLexicalRichness():
     with open(lexRichFile, 'wb') as f:
         pickle.dump(lexScores,f)
 
-featureMatrix = []
 
         
 def buildFeatureVector():
         sents, dates, nns, FRSScores, lexRich = loadData()
+        featureMatrix = []
+        featureNames = ['neg', 'neu', 'pos', 'nns', 'FRS', 'Dugast', 'Herdan', 'Maas', 'Summer', 'cttr', 'rttr', 'label']
         
-        for i in range(len(labels)):
+        for i,y in enumerate(labels):
             featureVector = []
             featureVector.append(sents[i]['neg'])
             featureVector.append(sents[i]['neu'])
             featureVector.append(sents[i]['pos'])
             featureVector.append(nns[i])
             featureVector.append(FRSScores[i])
+            featureVector.append(lexRich[i].Dugast)
+            featureVector.append(lexRich[i].Herdan)
+            featureVector.append(lexRich[i].Maas)
+            featureVector.append(lexRich[i].Summer)
+            featureVector.append(lexRich[i].cttr)
             featureVector.append(lexRich[i].rttr)
+            featureVector.append(y)
             featureMatrix.append(featureVector)
             print(i)
+        
+        
+        data = pd.DataFrame(featureMatrix,columns=featureNames)
+        
+        return data
+
         
 if __name__ == "__main__":
     
@@ -323,4 +336,5 @@ if __name__ == "__main__":
 #    extractFRSAllHTMLFiles()
 #    extractLexicalRichness()
     
-    buildFeatureVector()
+    data = buildFeatureVector()
+    data.to_csv('data.csv')
