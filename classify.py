@@ -20,9 +20,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
+import textstat
 from datetime import date, datetime, time, timedelta
-
+import os
+from lexicalrichness import LexicalRichness
 
 
 nltk.download('averaged_perceptron_tagger')
@@ -31,7 +32,8 @@ ppFile = "processedHTMLnoLemma.pickle"
 sentsFile = "sentiments.pickle"
 datesFile = "dates.pickle"
 posFile = 'posNouns.pickle'
-
+FRSFile = 'FRSscores.pickle'
+lexRichFile = 'lexRich.pickle'
 
 # noOfFilesToLoad = -1 for all files
 noOfFilesToLoad = -1
@@ -167,7 +169,15 @@ def loadData():
     with open(posFile, 'rb') as f:
         nns = pickle.load(f)
         
-    return sents, dates, nns
+    with open(FRSFile, 'rb') as f:
+        FRSScores = pickle.load(f)
+        
+    with open(lexRichFile, 'rb') as f:
+        lexRich = pickle.load(f)
+                
+        
+
+    return sents, dates, nns, FRSScores, lexRich
 
 def extractPOS(doc):
     is_noun = lambda pos: pos[:2] == 'NN'
@@ -233,7 +243,75 @@ def getAverageDates():
          avg.append(avg_datetime(x.iloc[ind,:], ind))
          
     return avg
+ 
+def extractFRSAllHTMLFiles():
 
+    Path1 = 'Gutenberg_English_Fiction_1k'
+    Path2 = 'Gutenberg_English_Fiction_1k'
+    HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
+    FRSScores = []
+    badIndexes = []
+    dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
+    data = pp.readIndexes()
+    
+    for i in range(len(data)):
+        print(i)
+        htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
+        corpus = pp.readHTMLFile(htmlFilePath)
+        if corpus:
+            score = textstat.flesch_reading_ease(corpus)
+
+            FRSScores.append(score)
+        else:
+            badIndexes.append(i)
+            
+    with open(FRSFile, 'wb') as f:
+        pickle.dump(FRSScores,f)
+        
+        
+def extractLexicalRichness():
+
+    Path1 = 'Gutenberg_English_Fiction_1k'
+    Path2 = 'Gutenberg_English_Fiction_1k'
+    HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
+    lexScores = []
+    badIndexes = []
+    dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
+    data = pp.readIndexes()
+    
+    for i in range(len(data)):
+        print(i)
+        htmlFilePath = os.path.join(dataPath,data['book_id'][i])[:-5] + '-content.html'
+        corpus = pp.readHTMLFile(htmlFilePath)
+        if corpus:
+            lex = LexicalRichness(corpus)
+            del lex.wordlist
+            del lex.text
+            
+            lexScores.append(lex)
+        else:
+            badIndexes.append(i)
+            
+    with open(lexRichFile, 'wb') as f:
+        pickle.dump(lexScores,f)
+
+featureMatrix = []
+
+        
+def buildFeatureVector():
+        sents, dates, nns, FRSScores, lexRich = loadData()
+        
+        for i in range(len(labels)):
+            featureVector = []
+            featureVector.append(sents[i]['neg'])
+            featureVector.append(sents[i]['neu'])
+            featureVector.append(sents[i]['pos'])
+            featureVector.append(nns[i])
+            featureVector.append(FRSScores[i])
+            featureVector.append(lexRich[i].rttr)
+            featureMatrix.append(featureVector)
+            print(i)
+        
 if __name__ == "__main__":
     
 #    svmClassifier()
@@ -241,6 +319,8 @@ if __name__ == "__main__":
 #    extractsentiments()
 #    extractDates()    
 #    extractPOSAllHTMLFiles()
-    asdasda = getAverageDates()
-    loadData()
+#    asdasda = getAverageDates()
+#    extractFRSAllHTMLFiles()
+#    extractLexicalRichness()
     
+    buildFeatureVector()
