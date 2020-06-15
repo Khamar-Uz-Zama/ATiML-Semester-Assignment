@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 
 from keras.models import Sequential
 from keras import layers
@@ -33,17 +34,12 @@ X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+def svm():
+    svm = SVC(C=1000000.0, gamma='auto', kernel='rbf')
+    svm.fit(X_train, y_train)
+    preds = svm.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test, preds)
+    print("Accuracy using Decision Tree:" ,accuracy)
 
 def knn():
     neigh = KNeighborsClassifier(n_neighbors=3)
@@ -67,7 +63,7 @@ def nn():
     model.summary()
     
     history = model.fit(X_train, y_train,
-                        epochs=10000,
+                        epochs=1000,
                         verbose=False,
                         validation_data=(X_test, y_test),
                         batch_size=10)
