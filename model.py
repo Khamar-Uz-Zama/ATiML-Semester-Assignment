@@ -12,9 +12,12 @@ import numpy as np
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-#from sklearn.metrics import confusion_matrix
 from sklearn import metrics
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+from keras.models import Sequential
+from keras import layers
 
 data = pd.read_csv('data.csv', index_col=False)
 data = data.drop(data.columns[0],1)
@@ -27,29 +30,6 @@ y = labelencoder.fit_transform(y)
 num_classes = len(labels.unique())
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=0)
 
-import keras
-from keras.models import Sequential,Input,Model
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers.normalization import BatchNormalization
-from keras.layers.advanced_activations import LeakyReLU
-
-
-
-cnnModel = Sequential()
-cnnModel.add(Conv2D(32, kernel_size=(3, 3),activation='linear',input_shape=(28,28,1),padding='same'))
-cnnModel.add(LeakyReLU(alpha=0.1))
-cnnModel.add(MaxPooling2D((2, 2),padding='same'))
-cnnModel.add(Conv2D(64, (3, 3), activation='linear',padding='same'))
-cnnModel.add(LeakyReLU(alpha=0.1))
-cnnModel.add(MaxPooling2D(pool_size=(2, 2),padding='same'))
-cnnModel.add(Conv2D(128, (3, 3), activation='linear',padding='same'))
-cnnModel.add(LeakyReLU(alpha=0.1))                  
-cnnModel.add(MaxPooling2D(pool_size=(2, 2),padding='same'))
-cnnModel.add(Flatten())
-cnnModel.add(Dense(128, activation='linear'))
-cnnModel.add(LeakyReLU(alpha=0.1))                  
-cnnModel.add(Dense(num_classes, activation='softmax'))
 
 
 
@@ -65,21 +45,38 @@ cnnModel.add(Dense(num_classes, activation='softmax'))
 
 
 
+def knn():
+    neigh = KNeighborsClassifier(n_neighbors=3)
+    
+    neigh.fit(X_train, y_train)
+    preds = neigh.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test,preds)
+    print("Accuracy using Decision Tree:" ,accuracy)
 
+def nn():
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    input_dim = X_train.shape[1]  # Number of features
+    
+    model = Sequential()
+    model.add(layers.Dense(10, input_dim=input_dim, activation='relu'))
+    model.add(layers.Dense(1, activation='sigmoid'))
+    
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam', 
+                  metrics=['accuracy'])
+    model.summary()
+    
+    history = model.fit(X_train, y_train,
+                        epochs=10000,
+                        verbose=False,
+                        validation_data=(X_test, y_test),
+                        batch_size=10)
+    
+    loss, accuracy = model.evaluate(X_train, y_train, verbose=False)
+    print("Training Accuracy: {:.4f}".format(accuracy))
+    loss, accuracy = model.evaluate(X_test, y_test, verbose=False)
+    print("Testing Accuracy:  {:.4f}".format(accuracy))
+    
 
 def decisionTree():
 
