@@ -121,6 +121,7 @@ def svmClassifier():
     plt.figure(figsize = (10,7))
     sns.heatmap(cf, annot=True)   
     print("Accuracy achieved using svm = {}".format(accuracy))
+    print("TF-IDF values are used.")
 
 def extractsentiments():
     sid = SentimentIntensityAnalyzer()
@@ -131,19 +132,15 @@ def extractsentiments():
         print(i)
         x = ",".join(doc)
         ss = sid.polarity_scores(x)
-#        for k in sorted(ss):
-#         print('{0}: {1}, '.format(k, ss[k]), end='')
-#         print()
          
         sentiments.append(ss)
-        
 
     with open(sentsFile, 'wb') as f:
         pickle.dump(sentiments,f)
         
 def extractDates():
     
-    zz = []
+    datesList = []
     for i,doc in enumerate(processedData):
         dates = []
         x = ",".join(doc)
@@ -153,45 +150,21 @@ def extractDates():
             dates.append(match)
             
         mylist = list(dict.fromkeys(dates))
-        zz.append(mylist)
+        datesList.append(mylist)
 
     with open(datesFile, 'wb') as f:
-        pickle.dump(zz,f)
-
-def loadData():
-    
-    with open(sentsFile, 'rb') as f:
-        sents = pickle.load(f)
-        
-    with open(datesFile, 'rb') as f:
-        dates = pickle.load(f)
-    
-    with open(posFile, 'rb') as f:
-        nns = pickle.load(f)
-        
-    with open(FRSFile, 'rb') as f:
-        FRSScores = pickle.load(f)
-        
-    with open(lexRichFile, 'rb') as f:
-        lexRich = pickle.load(f)
-                
-        
-
-    return sents, dates, nns, FRSScores, lexRich
+        pickle.dump(datesList,f)
 
 def extractPOS(doc):
     is_noun = lambda pos: pos[:2] == 'NN'
-#    for sentence in doc:        
-#        tokenized = nltk.word_tokenize(sentence)
-#        snouns = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos)] 
-#        dnouns.append(snouns)
-    x = 0
+
+    count = 0
     for sentence in doc:        
         tokenized = nltk.word_tokenize(sentence)
         for (word, pos) in nltk.pos_tag(tokenized):
             if is_noun(pos):
-                x +=1
-    return x
+                count +=1
+    return count
 
 def extractPOSAllHTMLFiles():
     nouns = []
@@ -296,6 +269,24 @@ def extractLexicalRichness():
         pickle.dump(lexScores,f)
 
 
+def loadData():
+    
+    with open(sentsFile, 'rb') as f:
+        sents = pickle.load(f)
+        
+    with open(datesFile, 'rb') as f:
+        dates = pickle.load(f)
+    
+    with open(posFile, 'rb') as f:
+        nns = pickle.load(f)
+        
+    with open(FRSFile, 'rb') as f:
+        FRSScores = pickle.load(f)
+        
+    with open(lexRichFile, 'rb') as f:
+        lexRich = pickle.load(f)
+                
+    return sents, dates, nns, FRSScores, lexRich
         
 def buildFeatureVector():
         sents, dates, nns, FRSScores, lexRich = loadData()
@@ -324,7 +315,6 @@ def buildFeatureVector():
         
         return data
 
-        
 if __name__ == "__main__":
     
 #    svmClassifier()
