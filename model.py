@@ -19,6 +19,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
 
 from keras.models import Sequential
 from keras import layers
@@ -41,9 +42,12 @@ def GNB():
     """
     gnb = GaussianNB()
     gnb.fit(X_train, y_train)
-    print(gnb.score(X_test, y_test))
+    accuracy = gnb.score(X_test, y_test)
+    print("Accuracy using SVM:" ,accuracy)
+    
+    return accuracy
 
-def svm():
+def SVM():
     """
     Support vector model
     """
@@ -53,7 +57,9 @@ def svm():
     accuracy = metrics.accuracy_score(y_test, preds)
     print("Accuracy using SVM:" ,accuracy)
 
-def knn():
+    return accuracy
+
+def KNN():
     """
     K nearest Neighbors model
     """    
@@ -62,9 +68,13 @@ def knn():
     preds = neigh.predict(X_test)
     accuracy = metrics.accuracy_score(y_test,preds)
     print("Accuracy using Decision Tree:" ,accuracy)
+    
+    return accuracy
 
 def nn():
-
+    """
+    xxxx Remove nn? xxxx
+    """
     input_dim = X_train.shape[1]  # Number of features
     
     model = Sequential()
@@ -110,16 +120,49 @@ def decisionTree():
     accuracy = metrics.accuracy_score(y_test,y_pred)
     print("Accuracy using Decision Tree:" ,accuracy)
 
+    return accuracy
+
+def randomForest():
+    """
+    Random Forest classifier
+    """
+    rf = RandomForestClassifier(n_estimators=100)
+    rf.fit(X_train,y_train)    
+    
+    y_pred=rf.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test, y_pred)
+    
+    print("Accuracy using Random Forest:" ,accuracy)
+    
+    return accuracy
+
 def plotGenres():
     """
-    Plots the count of the genres couints of the data
+    Plots the count of the genres counts of the data
     """
     targetCounts = labels.value_counts()
     ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+
+def plotAccuracies(accuracies):
     
+    # this is for plotting purpose
+    label = ["Decision Tree", "SVM", "Gaussian NB", "K-NN", "Random Forest"]
+    index = np.arange(len(accuracies))
+    plt.bar(index, accuracies)
+    plt.xlabel('Model', fontsize=5)
+    plt.ylabel('Accuracy', fontsize=5)
+    plt.xticks(index, label, fontsize=5, rotation=30)
+    plt.title('Market Share for Each Genre 1995-2017')
+    plt.show()     
+
 plotGenres()
 
-decisionTree()
-svm()
-GNB()
+dt = decisionTree()
+sv = SVM()
+nb = GNB()
+kn = KNN()
+rf = randomForest()
+
+plotAccuracies([dt, sv, nb, kn, rf])
+
