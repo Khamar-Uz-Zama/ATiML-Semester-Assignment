@@ -3,6 +3,9 @@
 Created on Wed May 27 02:53:58 2020
 
 @author: Khamar Uz Zama
+
+This program has the helper functions which help in
+reading and pre-processing of the HTML files.
 """
 
 import pandas as pd
@@ -18,11 +21,15 @@ from bs4 import BeautifulSoup
 
 lemmatizer = WordNetLemmatizer()
 stemmer = LancasterStemmer()
-pol = 0
+badFiles = 0
 stopwordsEN = set(stopwords.words('english'))
 
 
-def readIndexes():    
+def readIndexes():
+    """
+    Reads the index file as a pandas dataframe
+    """    
+    
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     indexFile = 'master996.csv'
@@ -33,21 +40,34 @@ def readIndexes():
     return data
 
 def readHTMLFile(htmlFilePath):
-    global pol
+    """
+    Reads a single HTML file and returns the text
+    """
+    
+    global badFiles
     
     try:
         with open(htmlFilePath, "r") as f:
             corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
     except:
         print("cant read file",pol)
-        pol+=1
+        badFiles +=1
         return False
     
     return corpus
 
-
-
 def preProcessDocument(corpus, preProcessingConfig):
+    """
+    The text is pre-processed according to the configuration provided
+    on the given corpus and returns the list of sentences.
+    
+    The pre-processing configuration includes the following:
+        a. Lowercasing the text
+        b. Removing symbols
+        c. Lemmatization
+        d. Stemming
+        e. Remove Stop-Words
+    """
     
     processedSentences = []
     corpus = sent_tokenize(corpus)
@@ -83,14 +103,20 @@ def preProcessDocument(corpus, preProcessingConfig):
     return processedSentences
 
 def processHTMLFiles(numberOfFilesToRead, preProcessingConfig):
-
+    """
+    Reads given number of files and pre-processes them
+    using the above helper functions.
+    """
+    
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
+    
     processedFiles = []
     badIndexes = []
     dataPath = os.path.join(os.getcwd(),Path1,Path2, HTMLFilesPath)
     data = readIndexes()
+    
     if(numberOfFilesToRead < 0):
         numberOfFilesToRead = data.shape[0]
     labels = data['guten_genre'][:numberOfFilesToRead]

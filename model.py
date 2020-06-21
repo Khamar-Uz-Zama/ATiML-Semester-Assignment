@@ -3,6 +3,8 @@
 Created on Sun Jun 14 22:36:25 2020
 
 @author: Khamar Uz Zama
+
+This document uses the extracted features to build various models.
 """
 
 import pandas as pd
@@ -30,30 +32,21 @@ y = labels
 labelencoder = LabelEncoder()
 y = labelencoder.fit_transform(y)
 num_classes = len(labels.unique())
+
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def GNB():
+    """
+    Gaussian Naive Bayes model
+    """
     gnb = GaussianNB()
     gnb.fit(X_train, y_train)
-    gnb.score(X_test, y_test)
+    print(gnb.score(X_test, y_test))
 
 def svm():
+    """
+    Support vector model
+    """
     svm = SVC(C=1000000.0, gamma='auto', kernel='rbf')
     svm.fit(X_train, y_train)
     preds = svm.predict(X_test)
@@ -61,8 +54,10 @@ def svm():
     print("Accuracy using SVM:" ,accuracy)
 
 def knn():
+    """
+    K nearest Neighbors model
+    """    
     neigh = KNeighborsClassifier(n_neighbors=3)
-    
     neigh.fit(X_train, y_train)
     preds = neigh.predict(X_test)
     accuracy = metrics.accuracy_score(y_test,preds)
@@ -94,7 +89,10 @@ def nn():
     
 
 def decisionTree():
-
+    """
+    Decision Tree classifier
+    """
+    
     dt = DecisionTreeClassifier()
     dt.fit(X_train, y_train)
     y_pred = dt.predict(X_test)
@@ -113,8 +111,15 @@ def decisionTree():
     print("Accuracy using Decision Tree:" ,accuracy)
 
 def plotGenres():
+    """
+    Plots the count of the genres couints of the data
+    """
     targetCounts = labels.value_counts()
     ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
     
-plotGenres()    
+plotGenres()
+
+decisionTree()
+svm()
+GNB()

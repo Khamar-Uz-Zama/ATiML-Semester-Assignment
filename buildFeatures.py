@@ -3,6 +3,9 @@
 Created on Wed May 27 14:01:33 2020
 
 @author: Khamar Uz Zama
+
+This program reads the pre-processed data, extracts various
+features from it and saves them for future use.
 """
 
 import preProcessing as pp
@@ -21,7 +24,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import textstat
-from datetime import date, datetime, time, timedelta
+#from datetime import date, datetime, time, timedelta
 import os
 from lexicalrichness import LexicalRichness
 
@@ -35,11 +38,13 @@ posFile = 'posNouns.pickle'
 FRSFile = 'FRSscores.pickle'
 lexRichFile = 'lexRich.pickle'
 
-# noOfFilesToLoad = -1 for all files
+# noOfFilesToLoad = -1 to read all files
 noOfFilesToLoad = -1
 savepreProcessingData = False
 loadpreProcessingData = True
 data = pp.readIndexes()
+
+# define the configuration for preprocessing
 preProcessingConfig = {
         "lower":True,
         "symbols":True,
@@ -49,6 +54,10 @@ preProcessingConfig = {
         }
 
 try:
+    """
+    Load the data, if any exception is encountered, the given number of
+    documents are processed again and saved.
+    """
     if(loadpreProcessingData):
         with open(ppFile, 'rb') as f:
             processedData = pickle.load(f)
@@ -73,10 +82,6 @@ except:
             
     processedData.pop()
 
-def plotGenres():
-    targetCounts = labels.value_counts()
-    ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
 def train_svm(X, y):
     """
@@ -105,7 +110,9 @@ def create_tfidf_training_data(docs):
     return X, vectorizer
 
 def svmClassifier():
-
+    """
+    The baseline classifier, which uses TF-IDF values and SVM to predict the genres.
+    """
     vectorizedData, vectorizer = create_tfidf_training_data(processedData)
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -119,27 +126,35 @@ def svmClassifier():
     cf = metrics.confusion_matrix(y_test, preds)
 
     plt.figure(figsize = (10,7))
-    sns.heatmap(cf, annot=True)   
-    print("Accuracy achieved using svm = {}".format(accuracy))
-    print("TF-IDF values are used.")
+    sns.heatmap(cf, annot=True)
+    
+    print("Accuracy achieved using svm (using TF-IDF)= {}".format(accuracy))
+    
 
 def extractsentiments():
+    """
+    Extract polarity scores for the given data.
+    The polartiy scores extracted are the overall sentiments 
+    (Positive ,Negative ,Neutral) for the whole book (HTML file)
+    """
     sid = SentimentIntensityAnalyzer()
     
     sentiments = []
     
     for i,doc in enumerate(processedData):
         print(i)
-        x = ",".join(doc)
-        ss = sid.polarity_scores(x)
+        sentences = ",".join(doc)
+        sentScores = sid.polarity_scores(sentences)
          
-        sentiments.append(ss)
+        sentiments.append(sentScores)
 
     with open(sentsFile, 'wb') as f:
         pickle.dump(sentiments,f)
         
 def extractDates():
-    
+    """
+    Extract dates from the processed data and pickle them.
+    """    
     datesList = []
     for i,doc in enumerate(processedData):
         dates = []
@@ -156,6 +171,10 @@ def extractDates():
         pickle.dump(datesList,f)
 
 def extractPOS(doc):
+    """
+    Extract the count of nouns from the given document
+    """
+    
     is_noun = lambda pos: pos[:2] == 'NN'
 
     count = 0
@@ -164,9 +183,14 @@ def extractPOS(doc):
         for (word, pos) in nltk.pos_tag(tokenized):
             if is_noun(pos):
                 count +=1
+    
     return count
 
 def extractPOSAllHTMLFiles():
+    """
+    Extract the count of nouns from all the documents using the helper function
+    """
+    
     nouns = []
     for i,doc in enumerate(processedData):
         print(i)
@@ -177,7 +201,6 @@ def extractPOSAllHTMLFiles():
         pickle.dump(nouns,f)
         
     return nouns
-
 
 def avg_datetime(series, ind):
     res = list(filter(None, series))
@@ -218,7 +241,12 @@ def getAverageDates():
     return avg
  
 def extractFRSAllHTMLFiles():
-
+    """
+    Extract Fleisch Reading Scores (FRS).
+    The documents and indexes are read again as the FRS is given for the 
+    original text and not the processed text
+    """
+    
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
@@ -243,7 +271,11 @@ def extractFRSAllHTMLFiles():
         
         
 def extractLexicalRichness():
-
+    """
+    Extract lexical richness of the text documents.
+    The original text is used here too.
+    """
+    
     Path1 = 'Gutenberg_English_Fiction_1k'
     Path2 = 'Gutenberg_English_Fiction_1k'
     HTMLFilesPath = 'Gutenberg_19th_century_English_Fiction'
@@ -270,6 +302,9 @@ def extractLexicalRichness():
 
 
 def loadData():
+    """
+    Loads all the pickle files and returns them
+    """
     
     with open(sentsFile, 'rb') as f:
         sents = pickle.load(f)
@@ -289,42 +324,45 @@ def loadData():
     return sents, dates, nns, FRSScores, lexRich
         
 def buildFeatureVector():
-        sents, dates, nns, FRSScores, lexRich = loadData()
-        featureMatrix = []
-        featureNames = ['neg', 'neu', 'pos', 'nns', 'FRS', 'Dugast', 'Herdan', 'Maas', 'Summer', 'cttr', 'rttr', 'label']
-        
-        for i,y in enumerate(labels):
-            featureVector = []
-            featureVector.append(sents[i]['neg'])
-            featureVector.append(sents[i]['neu'])
-            featureVector.append(sents[i]['pos'])
-            featureVector.append(nns[i])
-            featureVector.append(FRSScores[i])
-            featureVector.append(lexRich[i].Dugast)
-            featureVector.append(lexRich[i].Herdan)
-            featureVector.append(lexRich[i].Maas)
-            featureVector.append(lexRich[i].Summer)
-            featureVector.append(lexRich[i].cttr)
-            featureVector.append(lexRich[i].rttr)
-            featureVector.append(y)
-            featureMatrix.append(featureVector)
-            print(i)
-        
-        
-        data = pd.DataFrame(featureMatrix,columns=featureNames)
-        
-        return data
+    """
+    Builds the feature vector (including labels) using all 
+    pickle files and saves it as a CSV file
+    """
+    sents, dates, nns, FRSScores, lexRich = loadData()
+    featureMatrix = []
+    featureNames = ['neg', 'neu', 'pos', 'nns', 'FRS', 'Dugast', 'Herdan', 'Maas', 'Summer', 'cttr', 'rttr', 'label']
+    
+    for i,y in enumerate(labels):
+        featureVector = []
+        featureVector.append(sents[i]['neg'])
+        featureVector.append(sents[i]['neu'])
+        featureVector.append(sents[i]['pos'])
+        featureVector.append(nns[i])
+        featureVector.append(FRSScores[i])
+        featureVector.append(lexRich[i].Dugast)
+        featureVector.append(lexRich[i].Herdan)
+        featureVector.append(lexRich[i].Maas)
+        featureVector.append(lexRich[i].Summer)
+        featureVector.append(lexRich[i].cttr)
+        featureVector.append(lexRich[i].rttr)
+        featureVector.append(y)
+        featureMatrix.append(featureVector)
+        print(i)
+    
+    data = pd.DataFrame(featureMatrix,columns=featureNames)
+    
+    return data
 
 if __name__ == "__main__":
     
-#    svmClassifier()
+    svmClassifier()
 #    plotGenres()   
 #    extractsentiments()
-#    extractDates()    
+#    extractDates()
+#    asdasda = getAverageDates()    
 #    extractPOSAllHTMLFiles()
-#    asdasda = getAverageDates()
 #    extractFRSAllHTMLFiles()
 #    extractLexicalRichness()
     
-    data = buildFeatureVector()
-    data.to_csv('data.csv')
+#    data = buildFeatureVector()
+#    data.to_csv('data.csv')
