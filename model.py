@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -20,6 +21,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from keras.models import Sequential
 from keras import layers
@@ -136,6 +138,60 @@ def randomForest():
     
     return accuracy
 
+def train_svm(X, y):
+    """
+    Create and train the Support Vector Machine.
+    """
+    svm = SVC(C=1000000.0, gamma='auto', kernel='rbf')
+    svm.fit(X, y)
+    return svm
+
+def create_tfidf_training_data(processedData):
+    """
+    Creates a document corpus list (by stripping out the
+    class labels), then applies the TF-IDF transform to this
+    list. 
+    """
+    concDocs = []
+    separator = ','
+    
+    for i,doc in enumerate(processedData):
+        print(i)
+        concDocs.append(separator.join(doc))
+        
+    vectorizer = TfidfVectorizer(min_df=1)
+    X = vectorizer.fit_transform(concDocs)
+    
+    return X, vectorizer
+
+def tf_idf_SVM():
+    """
+    The baseline classifier, which uses TF-IDF values and SVM to predict the genres.
+    """
+    ppFile = "processedHTMLnoLemma.pickle"
+    with open(ppFile, 'rb') as f:
+        processedData = pickle.load(f)
+    
+    labels = processedData[-1]
+    processedData.pop()
+
+    vectorizedData, vectorizer = create_tfidf_training_data(processedData)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        vectorizedData, labels, test_size=0.2, random_state=42
+    )
+
+    svm = train_svm(X_train, y_train)
+    
+    preds = svm.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test, preds)
+    cf = metrics.confusion_matrix(y_test, preds)
+
+    plt.figure(figsize = (10,7))
+    sns.heatmap(cf, annot=True)
+    
+    print("Accuracy achieved using svm (using TF-IDF)= {}".format(accuracy))
+
 def plotGenres():
     """
     Plots the count of the genres counts of the data
@@ -143,8 +199,9 @@ def plotGenres():
     targetCounts = labels.value_counts()
     ax = sns.barplot(x=targetCounts.index, y=targetCounts.values, palette="Blues_d")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+    
 
-def plotAccuracies(accuracies):
+def plotAccuracies(accuracies, tfIDF):
     
     # this is for plotting purpose
     label = ["Decision Tree", "SVM", "Gaussian NB", "K-NN", "Random Forest"]
@@ -153,16 +210,19 @@ def plotAccuracies(accuracies):
     plt.xlabel('Model', fontsize=5)
     plt.ylabel('Accuracy', fontsize=5)
     plt.xticks(index, label, fontsize=5, rotation=30)
-    plt.title('Market Share for Each Genre 1995-2017')
+    plt.title('Accuracies for each model')
     plt.show()     
 
-plotGenres()
+#plotGenres()
+#
+#dt = decisionTree()
+#sv = SVM()
+#nb = GNB()
+#kn = KNN()
+#rf = randomForest()
+#
 
-dt = decisionTree()
-sv = SVM()
-nb = GNB()
-kn = KNN()
-rf = randomForest()
 
-plotAccuracies([dt, sv, nb, kn, rf])
+tfIDF = tf_idf_SVM()
 
+#plotAccuracies([dt, sv, nb, kn, rf], tfIDF)

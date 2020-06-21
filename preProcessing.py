@@ -50,7 +50,7 @@ def readHTMLFile(htmlFilePath):
         with open(htmlFilePath, "r") as f:
             corpus = BeautifulSoup(f, features="lxml", from_encoding='utf-8').text
     except:
-        print("cant read file",pol)
+        print("cant read file",badFiles)
         badFiles +=1
         return False
     
