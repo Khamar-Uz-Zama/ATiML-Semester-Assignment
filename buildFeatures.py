@@ -315,7 +315,6 @@ def buildFeatureVector():
 
 if __name__ == "__main__":
     
-    svmClassifier()
 #    plotGenres()   
 #    extractsentiments()
 #    extractDates()
