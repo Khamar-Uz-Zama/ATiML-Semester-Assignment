@@ -293,19 +293,19 @@ def plotPrecisionRecall(precisions, recalls):
     
 plotGenres(labels)
 
-#dt_Acc, dt_Prec, dt_Rec = decisionTree(X_train, y_train, X_test, y_test)
-#sv_Acc, sv_Prec, sv_Rec = SVM(X_train, y_train, X_test, y_test)
-#nb_Acc, nb_Prec, nb_Rec = GNB(X_train, y_train, X_test, y_test)
-#kn_Acc, kn_Prec, kn_Rec = KNN(X_train, y_train, X_test, y_test)
-#rf_Acc, rf_Prec, rf_Rec = randomForest(X_train, y_train, X_test, y_test)
+dt_Acc, dt_Prec, dt_Rec = decisionTree(X_train, y_train, X_test, y_test)
+sv_Acc, sv_Prec, sv_Rec = SVM(X_train, y_train, X_test, y_test)
+nb_Acc, nb_Prec, nb_Rec = GNB(X_train, y_train, X_test, y_test)
+kn_Acc, kn_Prec, kn_Rec = KNN(X_train, y_train, X_test, y_test)
+rf_Acc, rf_Prec, rf_Rec = randomForest(X_train, y_train, X_test, y_test)
 
-#tfIDF_Acc, tfIDF_Prec, tfIDF_Rec = tf_idf_SVM()
+tfIDF_Acc, tfIDF_Prec, tfIDF_Rec = tf_idf_SVM()
         
-#nn()
+nn()
 
-#plotAccuracies([dt_Acc, sv_Acc, nb_Acc, kn_Acc, rf_Acc, tfIDF_Acc])
+plotAccuracies([dt_Acc, sv_Acc, nb_Acc, kn_Acc, rf_Acc, tfIDF_Acc])
 
-#plotPrecision([dt_Prec, sv_Prec, nb_Prec, kn_Prec, rf_Prec, tfIDF_Prec], [dt_Rec, sv_Rec, nb_Rec, kn_Rec, rf_Rec, tfIDF_Rec])
+plotPrecisionRecall([dt_Prec, sv_Prec, nb_Prec, kn_Prec, rf_Prec, tfIDF_Prec], [dt_Rec, sv_Rec, nb_Rec, kn_Rec, rf_Rec, tfIDF_Rec])
 
 
 from imblearn.under_sampling import RandomUnderSampler
@@ -317,16 +317,16 @@ X_under, y_under = undersample.fit_resample(X, labels)
 plotGenres(y_under)
 
 y_under = labelencoder.fit_transform(y_under)
-#
-#X_train, X_test, y_train, y_test = train_test_split( X_under, y_under, test_size=0.3, random_state=0)
-#
-#dt_Acc, dt_Prec, dt_Rec = decisionTree(X_train, y_train, X_test, y_test)
-#sv_Acc, sv_Prec, sv_Rec = SVM(X_train, y_train, X_test, y_test)
-#nb_Acc, nb_Prec, nb_Rec = GNB(X_train, y_train, X_test, y_test)
-#kn_Acc, kn_Prec, kn_Rec = KNN(X_train, y_train, X_test, y_test)
-#rf_Acc, rf_Prec, rf_Rec = randomForest(X_train, y_train, X_test, y_test)
-#
-#plotAccuracies([dt_Acc, sv_Acc, nb_Acc, kn_Acc, rf_Acc])
-#    
-#plotPrecisionRecall([dt_Prec, sv_Prec, nb_Prec, kn_Prec, rf_Prec], [dt_Rec, sv_Rec, nb_Rec, kn_Rec, rf_Rec])
+
+X_train, X_test, y_train, y_test = train_test_split( X_under, y_under, test_size=0.3, random_state=0)
+
+dt_Acc, dt_Prec, dt_Rec = decisionTree(X_train, y_train, X_test, y_test)
+sv_Acc, sv_Prec, sv_Rec = SVM(X_train, y_train, X_test, y_test)
+nb_Acc, nb_Prec, nb_Rec = GNB(X_train, y_train, X_test, y_test)
+kn_Acc, kn_Prec, kn_Rec = KNN(X_train, y_train, X_test, y_test)
+rf_Acc, rf_Prec, rf_Rec = randomForest(X_train, y_train, X_test, y_test)
+
+plotAccuracies([dt_Acc, sv_Acc, nb_Acc, kn_Acc, rf_Acc])
+    
+plotPrecisionRecall([dt_Prec, sv_Prec, nb_Prec, kn_Prec, rf_Prec], [dt_Rec, sv_Rec, nb_Rec, kn_Rec, rf_Rec])
 
